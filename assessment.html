@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>수행평가 등록</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: #f8f9fc;
+      padding: 2rem;
+    }
+    h2 {
+      text-align: center;
+      color: #2e5cb8;
+    }
+    form, .eval-list {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 2rem;
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .eval-item {
+      border-bottom: 1px solid #ddd;
+      padding: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>수행평가 등록</h2>
+  <form id="evalForm">
+    <input type="text" id="subject" placeholder="과목명" required />
+    <input type="text" id="title" placeholder="평가 제목" required />
+    <input type="date" id="date" required />
+    <button type="submit">등록하기</button>
+  </form>
+
+  <div class="eval-list" id="evalList">
+    <h3>등록된 평가 목록</h3>
+    <!-- 목록이 여기에 표시됨 -->
+  </div>
+
+  <script>
+    const evalForm = document.getElementById("evalForm");
+    const evalList = document.getElementById("evalList");
+
+    let evals = JSON.parse(localStorage.getItem("evaluations") || "[]");
+
+    function renderEvals() {
+      const listHtml = evals.map(e => `
+        <div class="eval-item">
+          <strong>${e.subject}</strong> - ${e.title} (${e.date})
+        </div>
+      `).join("");
+      evalList.innerHTML = `<h3>등록된 평가 목록</h3>${listHtml}`;
+    }
+
+    evalForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const subject = document.getElementById("subject").value;
+      const title = document.getElementById("title").value;
+      const date = document.getElementById("date").value;
+
+      const newEval = { subject, title, date };
+      evals.push(newEval);
+      localStorage.setItem("evaluations", JSON.stringify(evals));
+      renderEvals();
+      evalForm.reset();
+    });
+
+    renderEvals();
+  </script>
+</body>
+</html>

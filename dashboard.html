@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>대시보드</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Pretendard', sans-serif;
+      background: #f4f6fa;
+    }
+    header {
+      background-color: #2e5cb8;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      padding: 2rem;
+    }
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 2rem;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card a {
+      text-decoration: none;
+      color: #2e5cb8;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>통합 학습 시스템</h1>
+    <span id="welcomeText"></span>
+  </header>
+
+  <section class="dashboard" id="menuContainer">
+    <!-- 역할에 따라 메뉴가 여기에 삽입됨 -->
+  </section>
+
+<script>
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+    // lucy0527 계정은 항상 관리자 권한 부여
+    if (currentUser && currentUser.id === "lucy0527") {
+      currentUser.role = "admin";
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    }
+
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    const menuContainer = document.getElementById("menuContainer");
+    const welcomeText = document.getElementById("welcomeText");
+
+    if (!user) {
+      window.location.href = "login.html";
+    }
+
+    const viewAsRole = localStorage.getItem("viewAsRole");
+    const role = viewAsRole || user.role;
+
+    if (user.role === "admin" && viewAsRole) {
+      welcomeText.textContent = `관리자님, 현재 ${viewAsRole === "teacher" ? "선생님" : "학생"} 화면을 보고 있습니다.`;
+    } else {
+      welcomeText.textContent = `${role === 'teacher' ? '선생님' : role === 'admin' ? '관리자' : '학생'} ${user.name || user.id}님 환영합니다!`;
+    }
+
+    // 메뉴 정의
+    const studentMenu = [
+      { title: "챗봇과 대화하기", link: "chatbot.html" },
+      { title: "문의하기", link: "inquiry.html" },
+      { title: "내 정보 보기", link: "profile.html" }
+    ];
+
+    const teacherMenu = [
+      { title: "수행평가 등록/관리", link: "teacher_eval.html" },
+      { title: "문의글 확인 및 답변", link: "inquiry_admin.html" },
+      { title: "내 정보 보기", link: "profile.html" }
+    ];
+
+    const menuList = role === "teacher" ? teacherMenu : studentMenu;
+
+    menuList.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `<h3>${item.title}</h3><a href="${item.link}">바로가기</a>`;
+      menuContainer.appendChild(card);
+    });
+
+    // 관리자일 때 대시보드 돌아가기 버튼 추가
+    if (user.role === "admin" && viewAsRole) {
+      const backBtn = document.createElement("div");
+      backBtn.className = "card";
+      backBtn.innerHTML = `<h3>관리자 대시보드로 돌아가기</h3><a href="admin_dashboard.html">돌아가기</a>`;
+      menuContainer.appendChild(backBtn);
+    }
+</script>
+</body>
+</html>

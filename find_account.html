@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>아이디 / 비밀번호 찾기</title>
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: #f4f6fa;
+      padding: 2rem;
+    }
+    main {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.7rem;
+      margin: 0.5rem 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2e5cb8;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h2>아이디 찾기</h2>
+    <input type="text" id="findName" placeholder="이름" />
+    <input type="text" id="findStudentId" placeholder="학번" />
+    <button onclick="findId()">아이디 찾기</button>
+    <p id="foundId"></p>
+
+    <hr>
+
+    <h2>비밀번호 재설정</h2>
+    <input type="text" id="resetId" placeholder="아이디" />
+    <input type="text" id="resetCode" placeholder="관리자에게 받은 인증 코드" />
+    <input type="password" id="newPassword" placeholder="새 비밀번호" />
+    <button onclick="resetPassword()">비밀번호 재설정</button>
+  </main>
+
+  <script>
+    function findId() {
+      const name = document.getElementById("findName").value;
+      const studentId = document.getElementById("findStudentId").value;
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const user = users.find(u => u.name === name && u.studentId === studentId);
+
+      const result = document.getElementById("foundId");
+      if (user) {
+        result.textContent = `아이디는 "${user.id}" 입니다.`;
+      } else {
+        result.textContent = "일치하는 사용자를 찾을 수 없습니다.";
+      }
+    }
+
+    function resetPassword() {
+      const id = document.getElementById("resetId").value;
+      const code = document.getElementById("resetCode").value;
+      const newPw = document.getElementById("newPassword").value;
+
+      const validCodes = JSON.parse(localStorage.getItem("authCodes") || "{}");
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+
+      if (!validCodes[id] || validCodes[id] !== code) {
+        alert("인증 코드가 잘못되었거나 존재하지 않습니다.");
+        return;
+      }
+
+      const user = users.find(u => u.id === id);
+      if (!user) {
+        alert("해당 아이디의 사용자를 찾을 수 없습니다.");
+        return;
+      }
+
+      user.pw = newPw;
+      localStorage.setItem("users", JSON.stringify(users));
+      delete validCodes[id];
+      localStorage.setItem("authCodes", JSON.stringify(validCodes));
+      alert("비밀번호가 재설정되었습니다. 로그인 페이지로 이동합니다.");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
