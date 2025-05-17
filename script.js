@@ -94,3 +94,14 @@ document.getElementById("loginForm")?.addEventListener("submit", function (e) {
     }
   }
 });
+
+
+fetch('https://your-backend-domain.com/api', {
+  method: 'POST',
+  credentials: 'include', // 쿠키를 포함하여 요청
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(data)
+});
+
