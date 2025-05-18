@@ -6,9 +6,10 @@ document.getElementById("signupRole")?.addEventListener("change", function () {
 });
 
 // 회원가입 처리
-document.getElementById("signupForm")?.addEventListener("submit", function (e) {
-  e.preventDefault();
+document.getElementById("signupForm")?.addEventListener("submit", async function (e) {
+  e.preventDefault(); // 기본 폼 제출 방지
 
+  // 입력값 수집
   const id = document.getElementById("signupId").value;
   const pw = document.getElementById("signupPw").value;
   const role = document.getElementById("signupRole").value;
@@ -17,66 +18,99 @@ document.getElementById("signupForm")?.addEventListener("submit", function (e) {
   const year = document.getElementById("signupYear")?.value || "";
   const studentId = document.getElementById("signupStudentId")?.value || "";
 
+  // 필수 입력값 검증
   if (!id || !pw || !role) {
     alert("모든 항목을 입력해주세요.");
     return;
   }
 
-  // 선생님 인증 코드 확인
+  // 선생님 인증 코드 확인 (코드가 "d"가 아니면 거절)
   if (role === "teacher" && code !== "d") {
     alert("선생님 인증 코드가 올바르지 않습니다.");
     return;
   }
 
-  // 학생 필드 확인
+  // 학생이라면 입학년도/학번 확인
   if (role === "student" && (!year || !studentId)) {
     alert("입학년도와 학번을 입력해주세요.");
     return;
   }
 
-  let users = [];
-  try {
-    const data = JSON.parse(localStorage.getItem("users"));
-    users = Array.isArray(data) ? data : [];
-  } catch (e) {
-    users = [];
-  }
-
-  if (users.find(u => u.id === id)) {
-    alert("이미 존재하는 아이디입니다.");
-    return;
-  }
-
+  // 서버에 보낼 회원 데이터 구성
   const userData = { id, pw, role, name };
-
   if (role === "student") {
     userData.year = year;
     userData.studentId = studentId;
   }
 
-  users.push(userData);
-  localStorage.setItem("users", JSON.stringify(users));
+  try {
+    // 백엔드로 POST 요청 (회원가입)
+    const res = await fetch("https://hshschatbot0.onrender.com/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userData)
+    });
 
-  alert("회원가입 완료!");
-  window.location.href = "login.html";
+    const result = await res.json(); // 응답 JSON 파싱
+
+    if (res.ok) {
+      alert("회원가입 완료!");
+      window.location.href = "login.html"; // 로그인 페이지로 이동
+    } else {
+      alert("회원가입 실패: " + result.message); // 서버 오류 메시지 출력
+    }
+
+  } catch (err) {
+    alert("서버 연결 실패: " + err.message); // 네트워크 또는 기타 오류
+  }
 });
 
+
 // 로그인 처리
-document.getElementById("loginForm")?.addEventListener("submit", function (e) {
-  e.preventDefault();
+document.getElementById("loginForm")?.addEventListener("submit", async function (e) {
+  e.preventDefault(); // 기본 폼 제출 방지
 
   const id = document.getElementById("loginId").value;
   const pw = document.getElementById("loginPw").value;
 
-  const users = JSON.parse(localStorage.getItem("users") || "[]");
-  const userIndex = users.findIndex((u) => u.id === id && u.pw === pw);
+  try {
+    // 백엔드에 로그인 정보 전송
+    const res = await fetch("https://hshschatbot0.onrender.com/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, pw })
+    });
 
-  if (userIndex === -1) {
-    alert("아이디 또는 비밀번호가 잘못되었습니다.");
-    return;
+    const result = await res.json(); // 응답 JSON 파싱
+
+    if (!res.ok) {
+      alert(result.message || "로그인 실패");
+      return;
+    }
+
+    const user = result.user;
+
+    // 로그인한 사용자 정보 localStorage에 저장
+    localStorage.setItem("currentUser", JSON.stringify(user));
+
+    // 관리자일 경우 관리자 대시보드로
+    if (user.id === "lucy0527") {
+      window.location.href = "admin_dashboard.html";
+    } 
+    // 선생님이면 선생님 대시보드로
+    else if (user.role === "teacher") {
+      window.location.href = "dashboard.html?as=teacher";
+    } 
+    // 학생이면 학생 대시보드로
+    else {
+      window.location.href = "dashboard.html?as=student";
+    }
+
+  } catch (err) {
+    alert("서버 오류: " + err.message); // 서버 또는 네트워크 오류
   }
+});
 
-  const user = users[userIndex];
 
   // 관리자 계정 특별 처리
   if (user.id === "lucy0527") {
