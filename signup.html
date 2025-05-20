@@ -13,18 +13,18 @@
       <input type="password" id="signupPw" placeholder="비밀번호" required />
       <input type="text" id="signupName" placeholder="이름" required />
 
-      <!-- 학생 전용 입력 필드 -->
-      <div id="studentFields" style="d:none;">
-        <input type="text" id="signupYear" placeholder="입학년도 (예: 2023)" />
-        <input type="text" id="signupStudentId" placeholder="학번 (예: 20231234)" />
-      </div>
-
       <!-- 역할 선택 -->
       <select id="signupRole" required>
         <option value="">역할 선택</option>
         <option value="student">학생</option>
         <option value="teacher">선생님</option>
       </select>
+     
+      <!-- 학생 전용 입력 필드 -->
+      <div id="studentFields" style="d:none;">
+        <input type="text" id="signupYear" placeholder="입학년도 (예: 2023)" />
+        <input type="text" id="signupStudentId" placeholder="학번 (예: 20231234)" />
+      </div>
 
       <!-- 선생님 인증 코드 -->
       <input type="text" id="teacherCode" placeholder="선생님 인증 코드" style="d:none;" />
