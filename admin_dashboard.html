@@ -91,6 +91,13 @@
       document.getElementById("adminName").textContent = `${currentUser.name || currentUser.id} 관리자님 환영합니다!`;
     }
 
+    // 로그인된 경우 이후 코드 실행
+ const menuContainer = document.getElementById("menuContainer");
+ const welcomeText = document.getElementById("welcomeText");
+
+ // 예시: 환영 메시지 출력
+ welcomeText.textContent = `${user.name}님 환영합니다!`;
+
     function viewRoleDashboard(role) {
       localStorage.setItem("viewAsRole", role);
       window.location.href = "dashboard.html";
