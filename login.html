@@ -16,45 +16,47 @@
     </form>
   </main>
 
-  <script>
-    const loginForm = document.getElementById("loginForm");
-  
-    loginForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-  
-      const id = document.getElementById("loginId").value;
-      const pw = document.getElementById("loginPw").value;
-  
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const user = users.find(u => u.id === id && u.pw === pw);
-  
-      if (user) {
-        // 관리자 자동 분기: lucy0527 계정이면 role을 강제로 admin으로 설정
-        if (user.id === "lucy0527") {
-          user.role = "admin";
-          // 저장소에도 갱신
-          const idx = users.findIndex(u => u.id === user.id);
-          if (idx !== -1) {
-            users[idx] = user;
-            localStorage.setItem("users", JSON.stringify(users));
-          }
-        }
-  
-        localStorage.setItem("currentUser", JSON.stringify(user));
-  
-        // 역할에 따라 분기
-        if (user.role === "admin") {
-          window.location.href = "admin_dashboard.html";
-        } else if (user.role === "teacher") {
-          window.location.href = "teacher_dashboard.html";
-        } else {
-          window.location.href = "student_dashboard.html";
-        }
-  
-      } else {
-        alert("아이디 또는 비밀번호가 잘못되었습니다.");
-      }
-    });
-  </script>   
+   <script>
+   const loginForm = document.getElementById("loginForm");
+
+   loginForm.addEventListener("submit", async function (e) {
+     e.preventDefault();
+
+     const id = document.getElementById("loginId").value;
+     const pw = document.getElementById("loginPw").value;
+
+     try {
+       const res = await fetch("https://hshschatbot0.onrender.com/login", {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json"
+         },
+         credentials: "include",
+         body: JSON.stringify({ id, password: pw })
+       });
+
+       const result = await res.json();
+
+       if (!res.ok) {
+         alert(result.message || "로그인 실패");
+         return;
+       }
+
+       const user = result.user;
+       localStorage.setItem("currentUser", JSON.stringify(user));
+
+       // 역할에 따라 분기
+       if (user.id === "lucy0527" || user.role === "admin") {
+         window.location.href = "admin_dashboard.html";
+       } else if (user.role === "teacher") {
+         window.location.href = "teacher_dashboard.html";
+       } else {
+         window.location.href = "student_dashboard.html";
+       }
+     } catch (err) {
+       alert("서버 오류: " + err.message);
+     }
+   });
+ </script>   
 </body>
 </html>
