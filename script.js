@@ -47,7 +47,7 @@ signupForm?.addEventListener("submit", async function (e) {
   }
 
   try {
-    const res = await fetch("https://hshschatbot0.onrender.com/register", {
+    const res = await fetch("https://hshs_chatbot_backend.onrender.com/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // 인증 정보를 포함
@@ -76,7 +76,7 @@ loginForm?.addEventListener("submit", async function (e) {
   const pw = document.getElementById("loginPw").value;
 
   try {
-    const res = await fetch("https://hshschatbot0.onrender.com/login", {
+    const res = await fetch("https://hshs_chatbot_backend.onrender.com/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // 인증 정보를 포함
