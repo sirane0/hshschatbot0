@@ -24,6 +24,21 @@ document.getElementById("signupForm")?.addEventListener("submit", async function
     return;
   }
 
+  // 페이지 로드 시 처음에 학생/선생님 필드를 숨깁니다.
+window.addEventListener("DOMContentLoaded", () => {
+  const role = document.getElementById("signupRole")?.value;
+  document.getElementById("teacherCode").style.display = "none";
+  document.getElementById("studentFields").style.display = "none";
+});
+
+// 역할 변경에 따라 입력 필드 표시 조절
+document.getElementById("signupRole")?.addEventListener("change", function () {
+  const role = this.value;
+  document.getElementById("teacherCode").style.display = role === "teacher" ? "block" : "none";
+  document.getElementById("studentFields").style.display = role === "student" ? "block" : "none";
+});
+
+
   // 선생님 인증 코드 확인 (코드가 "d"가 아니면 거절)
   if (role === "teacher" && code !== "d") {
     alert("선생님 인증 코드가 올바르지 않습니다.");
