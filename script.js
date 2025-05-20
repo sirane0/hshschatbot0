@@ -4,6 +4,8 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("studentFields").style.display = "none";
 });
 
+fetch("https://hshschatbot0.onrender.com/login", { ... })
+
 // 역할 변경에 따라 입력 필드 표시 조절
 const roleSelect = document.getElementById("signupRole");
 roleSelect?.addEventListener("change", function () {
