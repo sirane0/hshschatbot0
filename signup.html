@@ -8,100 +8,72 @@
 <body>
   <main class="auth">
     <h2>회원가입</h2>
+    <!-- 회원가입 폼 -->
     <form id="signupForm">
+      <!-- 아이디 입력 -->
       <input type="text" id="signupId" placeholder="아이디" required />
+      <!-- 비밀번호 입력 -->
       <input type="password" id="signupPw" placeholder="비밀번호" required />
+      <!-- 이름 입력 -->
       <input type="text" id="signupName" placeholder="이름" required />
-
-      <!-- 역할 선택 -->
+      <!-- 역할 선택 (학생 또는 선생님) -->
       <select id="signupRole" required>
         <option value="">역할 선택</option>
         <option value="student">학생</option>
         <option value="teacher">선생님</option>
       </select>
-     
-      <!-- 학생 전용 입력 필드 -->
-      <div id="studentFields" style="display:none;">
-        <input type="text" id="signupYear" placeholder="입학년도 (예: 2023)" />
-        <input type="text" id="signupStudentId" placeholder="학번 (예: 20231234)" />
-      </div>
-
-      <!-- 선생님 인증 코드 -->
-      <input type="text" id="teacherCode" placeholder="선생님 인증 코드" style="display:none;" />
-
+      <!-- 학년 입력 (선택 사항) -->
+      <input type="text" id="signupYear" placeholder="학년 (선택)" />
+      <!-- 학번 입력 (선택 사항) -->
+      <input type="text" id="signupStudentId" placeholder="학번 (선택)" />
+      <!-- 제출 버튼 -->
       <button type="submit">가입하기</button>
+      <!-- 로그인 페이지 링크 -->
       <p>이미 계정이 있으신가요? <a href="login.html">로그인</a></p>
     </form>
   </main>
 
   <script>
-    const roleSelect = document.getElementById("signupRole");
-    const teacherCodeInput = document.getElementById("teacherCode");
-    const studentFields = document.getElementById("studentFields");
+    // 회원가입 폼 요소 선택
+    const signupForm = document.getElementById("signupForm");
 
-    roleSelect.addEventListener("change", () => {
-      const role = roleSelect.value;
-      teacherCodeInput.style.display = role === "teacher" ? "block" : "none";
-      studentFields.style.display = role === "student" ? "block" : "none";
-    });
+    // 폼 제출 이벤트 처리기 등록
+    signupForm.addEventListener("submit", async function (e) {
+      e.preventDefault(); // 기본 폼 제출 동작 막기 (페이지 리로드 방지)
 
-    document.getElementById("signupForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      const id = document.getElementById("signupId").value.trim();
-      const pw = document.getElementById("signupPw").value.trim();
-      const name = document.getElementById("signupName").value.trim();
+      // 입력값들 가져오기
+      const id = document.getElementById("signupId").value;
+      const password = document.getElementById("signupPw").value;
+      const name = document.getElementById("signupName").value;
       const role = document.getElementById("signupRole").value;
-      const code = document.getElementById("teacherCode").value.trim();
+      const year = document.getElementById("signupYear").value;
+      const studentId = document.getElementById("signupStudentId").value;
 
-      const year = document.getElementById("signupYear").value.trim();
-      const studentId = document.getElementById("signupStudentId").value.trim();
+      try {
+        // 서버의 회원가입 API에 POST 요청 보내기
+        const res = await fetch("https://hshs-chatbot-backend.onrender.com/register", {
+          method: "POST", // HTTP 메서드
+          headers: { "Content-Type": "application/json" }, // JSON 형식임을 명시
+          credentials: "include", // 쿠키 등 인증 정보 포함 요청
+          body: JSON.stringify({ id, password, name, role, year, studentId }) // 요청 본문에 JSON 데이터 전송
+        });
 
-      if (!id || !pw || !name || !role) {
-        alert("모든 필드를 입력해주세요.");
-        return;
-      }
+        // 서버 응답 JSON 파싱
+        const result = await res.json();
 
-      // 학생 입력 필드 확인
-      if (role === "student" && (!year || !studentId)) {
-        alert("학생은 입학년도와 학번을 모두 입력해야 합니다.");
-        return;
-      }
+        // 응답이 실패(200 OK 아닌 경우)면 에러 메시지 표시 후 종료
+        if (!res.ok) {
+          alert(result.message || "회원가입 실패");
+          return;
+        }
 
-      // 선생님 인증 코드 확인
-      if (role === "teacher" && code !== "d") {
-        alert("선생님 인증 코드가 올바르지 않습니다.");
-        return;
-      }
+        // 회원가입 성공 시 알림 표시 후 로그인 페이지로 이동
+        alert("회원가입 성공! 로그인해주세요.");
+        window.location.href = "login.html";
 
-      let users = JSON.parse(localStorage.getItem("users") || "[]");
-      if (users.find(u => u.id === id)) {
-        alert("이미 존재하는 아이디입니다.");
-        return;
-      }
-
-      const finalRole = id === "lucy0527" ? "admin" : role;
-
-      const user = {
-        id,
-        pw,
-        name,
-        role: finalRole,
-        year: finalRole === "student" ? year : "",
-        studentId: finalRole === "student" ? studentId : ""
-      };
-
-      users.push(user);
-      localStorage.setItem("users", JSON.stringify(users));
-      localStorage.setItem("currentUser", JSON.stringify(user));
-
-      alert("회원가입 완료!");
-
-      // 역할별 리디렉션
-      if (finalRole === "admin") {
-        window.location.href = "admin_dashboard.html";
-      } else {
-        window.location.href = `dashboard.html?as=${finalRole}`;
+      } catch (err) {
+        // 네트워크 오류 등 예외 발생 시 알림
+        alert("서버 오류: " + err.message);
       }
     });
   </script>
