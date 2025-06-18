@@ -80,9 +80,7 @@ welcomeText.textContent = `${user.name}님 환영합니다!`;
     const viewAsRole = localStorage.getItem("viewAsRole");
     const role = viewAsRole || user.role;
 
-    if (user.role === "admin" && viewAsRole) {
-      welcomeText.textContent = `관리자님, 현재 ${viewAsRole === "teacher" ? "선생님" : "학생"} 화면을 보고 있습니다.`;
-    } else {
+    if (user.role === "admin" && viewAsRole)
       welcomeText.textContent = `${role === 'teacher' ? '선생님' : role === 'admin' ? '관리자' : '학생'} ${user.name || user.id}님 환영합니다!`;
     }
 
