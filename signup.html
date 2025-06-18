@@ -22,10 +22,14 @@
         <option value="student">학생</option>
         <option value="teacher">선생님</option>
       </select>
-      <!-- 학년 입력 (선택 사항) -->
-      <input type="text" id="signupYear" placeholder="학년 (선택)" />
-      <!-- 학번 입력 (선택 사항) -->
-      <input type="text" id="signupStudentId" placeholder="학번 (선택)" />
+      <!-- 학생 전용 입력 필드 -->
+      <div id="studentFields" style="display:none;">
+        <input type="text" id="signupYear" placeholder="입학년도 (예: 2023)" />
+        <input type="text" id="signupStudentId" placeholder="학번 (예: 20231234)" />
+      </div>
+
+      <!-- 선생님 인증 코드 -->
+      <input type="text" id="teacherCode" placeholder="선생님 인증 코드" style="display:none;" />
       <!-- 제출 버튼 -->
       <button type="submit">가입하기</button>
       <!-- 로그인 페이지 링크 -->
