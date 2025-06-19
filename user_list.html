@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원 목록</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: Pretendard, sans-serif; background: #f0f2f5; padding: 2rem; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { padding: 1rem; border: 1px solid #ddd; text-align: center; }
+    th { background: #eee; }
+  </style>
+</head>
+<body>
+    <!-- 여기에 사용자 리스트 관련 내용이 들어갑니다 -->
+
+  <div style="text-align:center; margin-top: 2rem;">
+    <a href="admin_dashboard.html" class="btn">← 관리자 대시보드로 돌아가기</a>
+  </div>
+  <h2>회원 목록</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>아이디</th>
+        <th>이름</th>
+        <th>역할</th>
+        <th>입학년도</th>
+        <th>학번</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody"></tbody>
+  </table>
+
+  <script>
+  // [1] 로컬스토리지에서 사용자 목록을 JSON 파싱하여 불러옵니다. 없으면 빈 배열로 초기화합니다.
+  const users = JSON.parse(localStorage.getItem("users") || "[]");
+
+  // [2] 사용자 목록을 표시할 테이블 바디 요소를 선택합니다.
+  const tbody = document.getElementById("userTableBody");
+
+  // [3] 백엔드에서 사용자 목록을 가져와 화면에 출력하는 비동기 함수 정의
+  async function loadUsers() {
+    try {
+      // [4] 백엔드 API에서 사용자 리스트 요청 (GET)
+      const res = await fetch("https://hshs-chatbot-backend.onrender.com/api/users");
+      if (!res.ok) throw new Error("사용자 목록 불러오기 실패");
+
+      // [5] JSON 데이터 파싱
+      const usersFromServer = await res.json();
+
+      // [6] 기존 테이블 내용 초기화
+      tbody.innerHTML = "";
+
+      // [7] 서버에서 받아온 사용자 목록을 순회하며 테이블 행을 생성
+      usersFromServer.forEach(user => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${user.id}</td>
+          <td>${user.name || ""}</td>
+          <td>${user.role}</td>
+          <td>${user.year || ""}</td>
+          <td>${user.studentId || ""}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      // [8] 오류 발생 시 사용자에게 알림 및 콘솔에 오류 출력
+      tbody.innerHTML = `<tr><td colspan="5">사용자 목록을 불러오는 중 오류가 발생했습니다.</td></tr>`;
+      console.error(err);
+    }
+  }
+
+  // [9] 페이지 로드 시 사용자 목록을 서버에서 불러와 렌더링 실행
+  loadUsers();
+</script>
+</body>
+</html>

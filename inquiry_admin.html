@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>문의글 답변</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: Pretendard, sans-serif; padding: 2rem; background: #f4f6fa; }
+    .container { max-width: 800px; margin: auto; }
+    .inquiry-item { background: #fff; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+    .inquiry-item h3 { margin: 0; }
+    .inquiry-item p { margin: 0.5rem 0; }
+    .inquiry-item small { color: #666; display: block; margin-top: 0.3rem; }
+    textarea { width: 100%; padding: 0.5rem; margin-top: 0.5rem; resize: vertical; }
+    button { margin-top: 0.5rem; padding: 0.5rem 1rem; background: #2e5cb8; color: white; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <!-- 관리자 대시보드로 돌아가는 버튼 -->
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #004080; color: white;">
+  <h2>문의글 관리</h2>
+  <a href="admin_dashboard.html" style="text-decoration: none;">
+    <button style="padding: 0.5rem 1rem; font-size: 1rem; background: #ffffff; color: #004080; border: none; border-radius: 5px; cursor: pointer;">
+      관리자 대시보드
+    </button>
+  </a>
+</header>
+  <div class="container">
+    <h2>문의글 답변</h2>
+    <div id="inquiryContainer"></div>
+  </div>
+
+  <script>
+  // [1] 현재 로그인한 사용자 정보를 로컬스토리지에서 불러옴
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+
+  // [2] 로그인하지 않았거나 관리자가 아닌 경우 접근 제한
+  if (!user || user.role !== "admin") {
+    alert("접근 권한이 없습니다.");
+    location.href = "login.html";
+  }
+
+  // [3] 문의글을 표시할 HTML 컨테이너를 가져옴
+  const container = document.getElementById("inquiryContainer");
+
+  // [4] 서버에서 모든 문의글을 불러와 화면에 표시하는 함수
+  async function loadInquiries() {
+    try {
+      // [4-1] 서버에 GET 요청 보내기
+      const res = await fetch("https://hshs-chatbot-backend.onrender.com/inquiries", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      // [4-2] 응답 실패 시 예외 처리
+      if (!res.ok) throw new Error("문의 목록을 불러오지 못했습니다.");
+
+      // [4-3] 응답 데이터를 JSON 배열로 파싱
+      const inquiries = await res.json();
+
+      // [4-4] 각 문의글을 화면에 표시
+      container.innerHTML = "";  // 기존 내용 초기화
+      inquiries.forEach((inq, index) => {
+        const div = document.createElement("div");
+        div.className = "inquiry-item";
+
+        div.innerHTML = `
+          <h3>${inq.title} ${inq.private ? '<span style="color:red;">[비공개]</span>' : ''}</h3>
+          <p>${inq.message}</p>
+          <small>작성자 ID: ${inq.userId}</small><br/>
+          <small>작성일: ${inq.createdAt}</small>
+          <p><strong>현재 답변:</strong> ${inq.reply || '아직 없음'}</p>
+          ${inq.repliedAt ? `<small>답변 시간: ${inq.repliedAt}</small>` : ''}
+          <textarea rows="3" id="reply-${inq._id}" placeholder="답변 작성...">${inq.reply || ''}</textarea>
+          <button onclick="saveReply('${inq._id}')">답변 저장</button>
+        `;
+
+        container.appendChild(div);
+      });
+
+    } catch (err) {
+      alert("서버 오류: " + err.message);
+    }
+  }
+
+  // [5] 특정 문의글에 대한 답변을 저장하는 함수
+  async function saveReply(inquiryId) {
+    // [5-1] 답변 내용 가져오기
+    const replyText = document.getElementById(`reply-${inquiryId}`).value.trim();
+    if (!replyText) {
+      alert("답변을 입력하세요.");
+      return;
+    }
+
+    try {
+      // [5-2] PUT 요청을 통해 서버에 답변 저장 요청
+      const res = await fetch(`https://hshs-chatbot-backend.onrender.com/inquiries/${inquiryId}/reply`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ reply: replyText })
+      });
+
+      // [5-3] 응답 처리
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "답변 저장 실패");
+
+      alert("답변이 저장되었습니다.");
+      loadInquiries();  // 다시 목록을 불러와 최신 내용 반영
+
+    } catch (err) {
+      alert("서버 오류: " + err.message);
+    }
+  }
+
+  // [6] 페이지 로드 시 문의글 목록을 불러옴
+  loadInquiries();
+</script>
+</body>
+</html>

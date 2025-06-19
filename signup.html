@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원가입</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="auth">
+    <h2>회원가입</h2>
+    <form id="signupForm">
+      <input type="text" id="signupId" placeholder="아이디" required />
+      <input type="password" id="signupPw" placeholder="비밀번호" required />
+      <input type="text" id="signupName" placeholder="이름" required />
+
+      <!-- 역할 선택 -->
+      <select id="signupRole" required>
+        <option value="">역할 선택</option>
+        <option value="student">학생</option>
+        <option value="teacher">선생님</option>
+      </select>
+     
+      <!-- 학생 전용 입력 필드 -->
+      <div id="studentFields" style="display:none;">
+        <input type="text" id="signupYear" placeholder="입학년도 (예: 2023)" />
+        <input type="text" id="signupStudentId" placeholder="학번 (예: 20231234)" />
+      </div>
+
+      <!-- 선생님 인증 코드 -->
+      <input type="text" id="teacherCode" placeholder="선생님 인증 코드" style="display:none;" />
+
+      <button type="submit">가입하기</button>
+      <p>이미 계정이 있으신가요? <a href="login.html">로그인</a></p>
+    </form>
+  </main>
+
+ <script>
+  // [1] 역할 선택 셀렉트 박스와 선생님 코드 입력란, 학생 필드 컨테이너 요소를 가져옵니다.
+  const roleSelect = document.getElementById("signupRole");
+  const teacherCodeInput = document.getElementById("teacherCode");
+  const studentFields = document.getElementById("studentFields");
+
+  // [2] 역할 선택이 바뀔 때마다 선생님 인증 코드 입력란과 학생 필드 표시를 제어합니다.
+  roleSelect.addEventListener("change", () => {
+    const role = roleSelect.value;
+    teacherCodeInput.style.display = role === "teacher" ? "block" : "none";  // 선생님일 때만 보임
+    studentFields.style.display = role === "student" ? "block" : "none";      // 학생일 때만 보임
+  });
+
+  // [3] 회원가입 폼 제출 이벤트 리스너 등록
+  document.getElementById("signupForm").addEventListener("submit", async function (e) {
+    e.preventDefault();  // 기본 폼 제출 동작 방지(페이지 리로드 방지)
+
+    // [4] 폼 입력값들 가져오기 및 공백 제거
+    const id = document.getElementById("signupId").value.trim();
+    const pw = document.getElementById("signupPw").value.trim();
+    const name = document.getElementById("signupName").value.trim();
+    const role = document.getElementById("signupRole").value;
+    const code = document.getElementById("teacherCode").value.trim();
+    const year = document.getElementById("signupYear").value.trim();
+    const studentId = document.getElementById("signupStudentId").value.trim();
+
+    // [5] 필수 입력값 체크
+    if (!id || !pw || !name || !role) {
+      alert("모든 필드를 입력해주세요.");
+      return;
+    }
+
+    // [6] 학생일 경우 입학년도와 학번도 필수 확인
+    if (role === "student" && (!year || !studentId)) {
+      alert("학생은 입학년도와 학번을 모두 입력해야 합니다.");
+      return;
+    }
+
+    // [7] 선생님 인증 코드가 올바른지 검증
+    if (role === "teacher" && code !== "d") {
+      alert("선생님 인증 코드가 올바르지 않습니다.");
+      return;
+    }
+
+    try {
+      // [8] 백엔드에 이미 존재하는 아이디인지 확인하는 API 호출 (GET /users/:id)
+      const checkRes = await fetch(`https://hshs-chatbot-backend.onrender.com/api/users/${id}`);
+      if (checkRes.ok) {
+        alert("이미 존재하는 아이디입니다.");
+        return;
+      }
+
+      // [9] id가 lucy0527일 경우 자동으로 관리자(admin) 역할 부여
+      const finalRole = id === "lucy0527" ? "admin" : role;
+
+      // [10] 회원가입에 필요한 사용자 정보 객체 생성
+      const user = {
+        id,
+        pw,
+        name,
+        role: finalRole,
+        year: finalRole === "student" ? year : "",
+        studentId: finalRole === "student" ? studentId : ""
+      };
+
+      // [11] 백엔드 회원가입 API에 POST 요청 보내기
+      const res = await fetch("https://hshs-chatbot-backend.onrender.com/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+      });
+
+      if (!res.ok) throw new Error("회원가입 실패");
+
+      // [12] 회원가입 성공 시 로컬스토리지에 현재 사용자 정보 저장
+      localStorage.setItem("currentUser", JSON.stringify(user));
+
+      alert("회원가입 완료!");
+
+      // [13] 역할에 따라 적절한 대시보드로 리디렉션
+      if (finalRole === "admin") {
+        window.location.href = "admin_dashboard.html";
+      } else {
+        window.location.href = `dashboard.html?as=${finalRole}`;
+      }
+    } catch (err) {
+      console.error("회원가입 중 오류:", err);
+      alert("서버 오류가 발생했습니다. 나중에 다시 시도해주세요.");
+    }
+  });
+</script>
+</body>
+</html>

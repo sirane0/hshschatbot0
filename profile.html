@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>내 정보</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: #f4f6fa;
+      margin: 0;
+      padding: 0;
+    }
+    main {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .info-group {
+      margin-bottom: 1rem;
+    }
+    .info-group label {
+      font-weight: bold;
+    }
+    .info-group p {
+      margin: 0.3rem 0 1rem;
+      color: #333;
+    }
+    .btn-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    button {
+      padding: 0.7rem;
+      width: 100%;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+    .edit-btn {
+      background-color: #2e5cb8;
+      color: white;
+    }
+    .dashboard-btn {
+      background-color: #aaa;
+      color: white;
+    }
+    .edit-btn:hover {
+      background-color: #1d428a;
+    }
+    .dashboard-btn:hover {
+      background-color: #888;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h2>내 정보</h2>
+    <div class="info-group">
+      <label>이름:</label>
+      <p id="userName"></p>
+    </div>
+    <div class="info-group">
+      <label>아이디:</label>
+      <p id="userId"></p>
+    </div>
+    <div class="info-group">
+      <label>역할:</label>
+      <p id="userRole"></p>
+    </div>
+    <div class="info-group">
+      <label>입학년도:</label>
+      <p id="userYear"></p>
+    </div>
+    <div class="info-group">
+      <label>학번:</label>
+      <p id="userStudentId"></p>
+    </div>
+
+    <div class="btn-container">
+      <button class="edit-btn" onclick="location.href='edit-profile.html'">수정하기</button>
+      <button class="dashboard-btn" onclick="location.href='dashboard.html'">대시보드로 돌아가기</button>
+    </div>
+  </main>
+
+  <script>
+  // [1] 로컬스토리지에서 현재 로그인한 사용자 정보 가져오기
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+  // [2] 로그인하지 않았을 경우 로그인 페이지로 이동
+  if (!currentUser) {
+    alert("로그인이 필요합니다.");
+    window.location.href = "login.html";
+  }
+
+  // [3] 사용자 ID를 기반으로 서버에서 사용자 상세 정보 조회
+  fetch(`https://hshs-chatbot-backend.onrender.com/user?id=${encodeURIComponent(currentUser.id)}`, {
+    method: "GET",
+    credentials: "include", // 쿠키 인증을 사용할 경우 포함
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw new Error("서버에서 사용자 정보를 가져오는 데 실패했습니다.");
+    }
+    return res.json(); // JSON 형식으로 파싱
+  })
+  .then(user => {
+    // [4] 사용자 정보를 HTML에 반영
+    document.getElementById("userName").textContent = user.name || "(이름 없음)";
+    document.getElementById("userId").textContent = user.id;
+    document.getElementById("userRole").textContent =
+      user.role === "teacher" ? "선생님" :
+      user.role === "admin" ? "관리자" : "학생";
+    document.getElementById("userYear").textContent = user.year || "(입학년도 없음)";
+    document.getElementById("userStudentId").textContent = user.studentId || "(학번 없음)";
+
+    // [5] 최신 사용자 정보를 로컬스토리지에도 다시 저장 (싱크 유지 목적)
+    localStorage.setItem("currentUser", JSON.stringify(user));
+  })
+  .catch(error => {
+    // [6] 서버 오류 또는 네트워크 오류 처리
+    console.error("사용자 정보 조회 오류:", error);
+    alert("사용자 정보를 불러오는 데 실패했습니다.");
+    window.location.href = "login.html"; // 오류 발생 시 로그인 페이지로 이동
+  });
+</script>
+</body>
+</html>

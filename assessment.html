@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>수행평가 등록</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: #f8f9fc;
+      padding: 2rem;
+    }
+    h2 {
+      text-align: center;
+      color: #2e5cb8;
+    }
+    form, .eval-list {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 2rem;
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .eval-item {
+      border-bottom: 1px solid #ddd;
+      padding: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>수행평가 등록</h2>
+  <form id="evalForm">
+    <input type="text" id="subject" placeholder="과목명" required />
+    <input type="text" id="title" placeholder="평가 제목" required />
+    <input type="date" id="date" required />
+    <button type="submit">등록하기</button>
+  </form>
+
+  <div class="eval-list" id="evalList">
+    <h3>등록된 평가 목록</h3>
+    <!-- 목록이 여기에 표시됨 -->
+  </div>
+
+<script>
+  // [1] 평가 등록 폼 요소를 가져옴
+  const evalForm = document.getElementById("evalForm");
+
+  // [2] 평가 목록을 표시할 요소를 가져옴
+  const evalList = document.getElementById("evalList");
+
+  // [3] 서버에서 평가 목록을 불러와 화면에 표시하는 함수
+  async function loadEvaluations() {
+    try {
+      // GET 요청을 통해 백엔드에서 평가 목록을 요청
+      const res = await fetch("https://your-backend-url/evaluations", {
+        method: "GET",
+        credentials: "include",  // 세션 쿠키를 포함하여 로그인 유지
+      });
+
+      if (!res.ok) {
+        throw new Error("평가 목록을 불러오는 데 실패했습니다.");
+      }
+
+      // 응답 JSON 데이터를 평가 배열로 변환
+      const evals = await res.json();
+
+      // 평가 배열을 화면에 렌더링
+      renderEvals(evals);
+    } catch (err) {
+      // 오류 발생 시 사용자에게 알림
+      alert("서버 오류: " + err.message);
+    }
+  }
+
+  // [4] 평가 데이터를 받아 목록 형태로 화면에 표시하는 함수
+  function renderEvals(evals) {
+    // 각 평가 항목을 HTML 문자열로 변환
+    const listHtml = evals.map(e => `
+      <div class="eval-item">
+        <strong>${e.subject}</strong> - ${e.title} (${e.date})
+      </div>
+    `).join("");  // 모든 평가 항목을 하나의 HTML 문자열로 합침
+
+    // 평가 목록을 표시할 영역에 HTML 삽입
+    evalList.innerHTML = `<h3>등록된 평가 목록</h3>${listHtml}`;
+  }
+
+  // [5] 사용자가 평가 등록 폼을 제출했을 때 실행될 이벤트 처리기
+  evalForm.addEventListener("submit", async (e) => {
+    e.preventDefault();  // 기본 폼 제출 동작(새로고침) 방지
+
+    // 입력된 평가 정보 가져오기
+    const subject = document.getElementById("subject").value.trim();
+    const title = document.getElementById("title").value.trim();
+    const date = document.getElementById("date").value;
+
+    // 필수 입력값 검증
+    if (!subject || !title || !date) {
+      alert("모든 항목을 입력해주세요.");
+      return;
+    }
+
+    // 새 평가 데이터를 객체 형태로 준비
+    const newEval = { subject, title, date };
+
+    try {
+      // POST 요청으로 서버에 평가 정보 전송
+      const res = await fetch("https://hshs-chatbot-backend.onrender.com/evaluations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(newEval)
+      });
+
+      if (!res.ok) {
+        const result = await res.json();
+        throw new Error(result.message || "등록에 실패했습니다.");
+      }
+
+      // 등록 성공 시 알림 후 평가 목록 새로고침
+      alert("평가가 성공적으로 등록되었습니다.");
+      evalForm.reset();    // 폼 입력 필드 초기화
+      loadEvaluations();   // 목록 다시 불러오기
+
+    } catch (err) {
+      alert("서버 오류: " + err.message);
+    }
+  });
+
+  // [6] 페이지 로드 시 초기 평가 목록을 서버에서 불러오기
+  loadEvaluations();
+</script>
+</body>
+</html>

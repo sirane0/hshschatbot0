@@ -1,0 +1,107 @@
+<!-- admin_dashboard.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>관리자 대시보드</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #222;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    main {
+      padding: 2rem;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card a {
+      text-decoration: none;
+      color: #2e5cb8;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>관리자 대시보드</h1>
+    <span id="adminName"></span>
+  </header>
+
+  <main>
+    <h2>메뉴</h2>
+    <div class="menu">
+      <div class="card">
+        <h3>학생 페이지 보기</h3>
+        <button onclick="viewRoleDashboard('student')">이동하기</button>
+      </div>
+      <div class="card">
+        <h3>선생님 페이지 보기</h3>
+        <button onclick="viewRoleDashboard('teacher')">이동하기</button>
+      </div>
+      <div class="card">
+        <h3>회원 관리</h3>
+        <a href="user_list.html">이동하기</a>
+      </div>
+      <div class="card">
+        <h3>인증번호 관리</h3>
+        <a href="auth_code.html">이동하기</a>
+      </div>
+      <div class="card">
+        <h3>문의글 보기</h3>
+        <a href="inquiry_admin.html">이동하기</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  // 로컬스토리지에서 현재 로그인한 사용자 정보 가져오기
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+  // 현재 사용자가 없거나 역할이 'admin'이 아니면 접근 불가 처리
+  if (!currentUser || currentUser.role !== "admin") {
+    alert("접근 권한이 없습니다.");           // 권한 없다는 경고창 표시
+    window.location.href = "login.html";    // 로그인 페이지로 강제 이동
+  } else {
+    // 관리자일 경우 환영 메시지를 화면에 표시
+    // 이름이 없으면 아이디로 대체하여 출력
+    document.getElementById("adminName").textContent = `${currentUser.name || currentUser.id} 관리자님 환영합니다!`;
+  }
+
+  // 역할별 대시보드 보기 함수
+  // 매개변수 role을 localStorage에 저장하고, dashboard.html로 이동함
+  function viewRoleDashboard(role) {
+    localStorage.setItem("viewAsRole", role);  // 역할 정보를 저장 (예: "teacher", "student" 등)
+    window.location.href = "dashboard.html";   // 역할 기반 대시보드 페이지로 이동
+  }
+</script>
+</body>
+</html>
