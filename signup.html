@@ -111,19 +111,10 @@
       // [12] 회원가입 성공 시 로컬스토리지에 현재 사용자 정보 저장
       localStorage.setItem("currentUser", JSON.stringify(user));
 
-      alert("회원가입 완료!");
+      // [13] 회원가입 성공 시 로그인 페이지로 전환
+      alert("회원가입 완료! 로그인 페이지로 이동합니다.");
+       window.location.href = "login.html";
 
-      // [13] 역할에 따라 적절한 대시보드로 리디렉션
-      if (finalRole === "admin") {
-        window.location.href = "admin_dashboard.html";
-      } else {
-        window.location.href = `dashboard.html?as=${finalRole}`;
-      }
-    } catch (err) {
-      console.error("회원가입 중 오류:", err);
-      alert("서버 오류가 발생했습니다. 나중에 다시 시도해주세요.");
-    }
-  });
 </script>
 </body>
 </html>
